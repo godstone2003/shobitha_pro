@@ -1,0 +1,53 @@
+services:
+  database:
+    build: ./dbserver
+    restart: unless-stopped
+
+    environment:
+      MYSQL_DATABASE: 7009db                    # Changed from appdb
+      MYSQL_USER: wwwclient23                   # Changed from appuser
+      MYSQL_PASSWORD_FILE: /run/secrets/db_password
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+
+    secrets:
+      - db_password
+      - db_root_password
+
+    networks:
+      - backend_net
+
+  webapp:
+    build: ./webserver
+
+    # IMPORTANT: map host port to NON-PRIVILEGED container port
+    ports:
+      - "8081:8080"
+
+    depends_on:
+      - database
+
+    # Strong runtime hardening
+    read_only: true
+
+    # Writable runtime paths for nginx & php-fpm
+    tmpfs:
+      - /run
+      - /tmp
+      - /var/lib/nginx
+      - /var/cache/nginx
+
+    networks:
+      - frontend_net
+      - backend_net
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  db_root_password:
+    file: ./secrets/db_root_password.txt
+
+networks:
+  frontend_net:
+    driver: bridge
+  backend_net:
+    driver: bridge
