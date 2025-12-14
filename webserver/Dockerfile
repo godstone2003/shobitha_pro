@@ -37,7 +37,7 @@ RUN echo '#!/bin/sh' > /start.sh && \
     echo '# Start nginx as nginx user (redirect startup errors to /tmp)' >> /start.sh && \
     echo 'su -s /bin/sh nginx -c "nginx -g \"daemon off;\" 2>/tmp/nginx-startup-error.log"' >> /start.sh && \
     chmod +x /start.sh
-
+USER nginx
 EXPOSE 8080
 
 CMD ["/start.sh"]
